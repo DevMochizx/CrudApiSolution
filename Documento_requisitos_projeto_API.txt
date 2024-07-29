@@ -1,0 +1,316 @@
+Requisito:
+	Criar uma API para controle de contas pessoais.
+	Onde seja possível:
+		Cadastrar as contas (CRUD), a Movimentação Mensal (CRUD) e Pagamento da movimentação.(CRUD)
+		
+Critérios de aceite:
+
+	1 - Cadastro de Contas:
+		Consiste na base de contas a serem movimentadas e pagas para se fazer o controle mês a mês.
+		
+		Deve ser mantido com os seguintes Atributos: Id, Nome, Tipo de Conta, Quantidade de parcelas.
+		Onde:
+			Id: Identificador único para a conta
+			Nome: Nome da conta 
+			Tipo de Conta: Indicador se a conta é fixa, variável ou parcelada.
+			Quantidade de parcelas: Quantidade parcelas que a conta possui, em caso de conta não parcelada será sempre 1.
+			
+		* End-Points a serem disponibilizados:
+		  GET    -  Listar todas as contas, 
+					Buscar por Id 
+					Buscar por nome
+		  POST 	 -  Inclusão de nova conta
+		  PUT    -	Alteração de conta por Id
+						Deve validar a existência da conta
+							Caso não exista retornar o Not Found
+						Deve validar se já existe movimento ligado à conta. 
+							Caso exista, não permitir alterar o tipo de conta.
+		  DELETE - Excluir conta por Id
+						Deve validar se já existe movimento ligado à conta. 
+							Caso exista, não permitir excluir.
+
+			
+	
+	2 - Movimentação Mensal
+		Consiste na base/controle de movimentação das contas, onde se deve ser feito o registro da conta a ser paga no determinado
+		mês/ano de referência com valor, data de vencimento e número da parcela.
+		
+		Deve ser mantida com os seguintes atributos: Id, Id da Conta, Tipo do movimento, Valor, Data do vencimento, Número da parcela.
+													 
+		Onde: 
+			Id: Identificador único do movimento
+			Id da Conta: Identificador único da conta a ser movimentada
+			Tipo do Movimento: Indicador de Entrada ou Saída
+			Valor : Valor monetário do movimento
+			Data do Vencimento: Data do vecimento do movimento
+			Número da parcela: Número da parcela referente ao movimento, em caso de conta não parcelada o será sempre 1.
+
+		* End-Points a serem disponibilizados:
+		  GET    -  Listar todos os movimentos, 
+					Buscar por Id da conta 
+					Buscar por mês/ano
+					Buscar Todos Pendentes à vencer (Movimentos que NÃO possui registro de pagamento)
+					Buscar Todos Pendentes vencidos (Movimentos que NÃO possui registro de pagamento)
+					Buscar Todos Pagos (Movimentos que POSSUI registro de pagamento)
+		  POST 	 -  Inclusão de novo movimento
+		  PUT    -	Alteração do movimento por Id
+						Deve validar a existência do movimento
+							Caso não exista retornar o Not Found
+						Deve validar se já existe pagamento ligado ao movimento. 
+							Caso exista NÃO PERMITIR ALTERAR, .
+		  DELETE - Excluir Movimento por Id
+						Deve validar se já existe pagamento ligado ao movimento. 
+							Caso exista, não permitir excluir.
+	
+	3 - Pagamento de Conta
+		Consiste no base/controle de pagamento dos movimentos do tipo Saída, onde deve ser mantido e registrado os movimentos de
+		de Saída que foram pagos.
+		
+		Deve ser mantido com os seguintes atributos: Id, Id do Movimento, Numero da Parcela, Valor do Movimento, Valor Pago, 
+													 Valor de Juros, Valor do Desconto, Data do Pagamento.
+													 
+		Onde:
+			Id: Identificador único do pagamento
+			Id do Movimento: Identificador do movimento pago
+			Número da Parcela: Número da parcela referente ao pagamento
+			Valor do Movimento: Valor monetário do movimento do pagamento
+			Valor Pago: Valor do pagamento
+			Valor de Juros: Valor do Juros caso haja
+			Valor do desconto: Valor do desconto caso haja
+			Data do Pagamento: Data em que o Pagamento foi feito.
+
+		* End-Points a serem disponibilizados:
+		  GET    -  Listar todos os pagamentos, 
+					Buscar por Id da conta 
+					Buscar por mês/ano do Vencimento do Movimento 
+					Buscar por mês/ano do Pagamento 
+		  POST 	 -  Inclusão de novo movimento
+		  PUT    -	Alteração do movimento por Id
+						Deve validar a existência do pagamento
+							Caso não exista retornar o Not Found
+						Permitir alterar pagamentos com máximo 30 dias.
+		  DELETE - Excluir Movimento por Id
+						Permitir excluir pagamentos com máximo 30 dias.
+	
+
+	4 - Documentação da API
+		Todos os end-points da API devem ser documentados através do swagger, dando a possibilidade de usuário realizar 
+		requisições e visualizar suas respectivas respostas.
+	
+
+
+
+Classes:
+
+Conta
+	Id: int
+	Nome: string
+	TipoConta: enum<int> (Fixa, Variavel, Parcelada)
+	QuantidadeParcelas: int
+	
+
+MovimentoConta
+	Id: int
+	IdConta: int
+	TipoMovimento: enum<int> (Entrada, Saída)
+	ValorMovimento: decimal
+	NumeroParcela: int
+	DataVencimento: DateTime
+	
+PagamentoConta
+	Id: int
+	IdMovimentoConta: int
+	NumeroParcela: int
+	ValorMovimento: decimal
+	ValorPago: decimal
+	ValorJuros: decimal
+	ValorDesconto: decimal
+	DataPagamento: DateTime
+	
+	
+
+################# AULA 18/07 #################################
+TRABALHO PARA CASA
+Conceitue e exemplifique a configuração e a utilização da Injeção de dependência
+O que é Entity Framework?
+O que é LINQ e dê exemplos de consultas LINQ?
+O que é Lambda em c#?
+	
+	
+
+
+CLASSES AJUSTADAS:
+public class EntidadeBase
+    {
+        [Key]
+        public int Id { get; set; }
+    }
+	
+[Table("Conta")]
+    public class Conta: EntidadeBase
+    {
+        [StringLength(100)]
+        public string Nome { get; set; } = string.Empty;
+        public EnTipoConta TipoConta { get; set; }
+        public int QuantidadeParcelas { get; set; }
+
+    }
+
+[Table("MovimentoConta")]
+    public class MovimentoConta: EntidadeBase
+    {
+        public int IdConta { get; set; }
+        public EnTipoMovimento TipoMovimento { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ValorMovimento { get; set; }
+        public int NumeroParcela { get; set; }
+        public DateTime DataVencimento { get; set; }
+
+    }
+	
+[Table("PagamentoConta")]
+    public class PagamentoConta: EntidadeBase
+    {
+        public int IdMovimentoConta { get; set; }
+        public int NumeroParcela { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ValorMovimento { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ValorPago { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ValorJuros { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ValorDesconto { get; set; }
+        public DateTime DataPagamento { get; set; }
+    }	
+
+////Adicionar no arquivo appsettings.json:
+"ConnectionStrings": {
+    "AzureDatabase": "Server=tcp:tecnicosenac2024.database.windows.net,1433;Initial Catalog=curso_tecnico_2024;Persist Security Info=False;User ID=tecnicosenacadm;Password=CursoTecnico@2024;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+  }, 
+
+/*	Instalar pacotes do entity framework no projeto App e configurar o arquivo program
+
+	Microsoft.EntityFrameworkCore
+	Microsoft.EntityFrameworkCore.SqlServer
+	Microsoft.EntityFrameworkCore.Design
+	Microsoft.EntityFrameworkCore.Tools
+*/
+
+
+////Adicionar na Classe Program
+
+string connString = builder.Configuration.GetConnectionString("AzureDatabase");
+
+builder.Services.AddDbContext<ContextDB>(options =>
+{
+    options.UseSqlServer(connString);
+});
+
+////Classe ContextDB
+using CrudAPI.RegraNegocio.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
+
+/*Instalar pacotes do entity framework no projeto Data
+	Microsoft.AspNetCore.Identity.EntityFrameworkCore
+	Microsoft.EntityFrameworkCore
+	Microsoft.EntityFrameworkCore.Design
+	Microsoft.EntityFrameworkCore.Tools
+	Microsoft.VisualStudio.Web.CodeGeneration.Design
+*/
+
+
+public class ContextDB: IdentityDbContext
+    {
+        public ContextDB(DbContextOptions<ContextDB> options) : base(options)
+        {
+
+        }
+
+        public DbSet<Conta>? Contas { get; set; }
+        public DbSet<MovimentoConta>? MovimentoContas { get; set; }
+        public DbSet<PagamentoConta>? PagamentoContas { get; set; }
+
+    }
+
+/* Comandos de Migration
+Add-Migration NomeDaMigracao
+Update-Database
+
+*/
+
+namespace CrudAPI.Dados.DbContext
+{
+    public class ContextDB: IdentityDbContext
+    {
+        public ContextDB(DbContextOptions<ContextDB> options) : base(options)
+        {
+
+        }
+
+        public DbSet<Conta> Contas { get; set; }
+        public DbSet<MovimentoConta> MovimentoContas { get; set; }
+        public DbSet<PagamentoConta> PagamentoContas { get; set; }
+
+    }
+}
+
+
+
+
+******** INTERFACES REPOSITORIO **********
+public interface IRepositorio<TEntidadeBase> : IDisposable where TEntidadeBase : EntidadeBase
+    {
+        /// <summary>
+        ///Apenas task método void 
+        /// </summary>
+        /// <param name="entidade">Objeto que herda de entidade que estiver instanciado no momento</param>
+        /// <returns>Void</returns>
+        Task Adicionar(TEntidadeBase entidade);
+
+        /// <summary>
+        ///tipo o task<List<TEntidadeBase>> retorna a lista do tipo passado
+        /// </summary>
+        /// <returns>Lista do Objeto do tipo entidade que etiver instanciado no momento</returns>
+        Task<List<TEntidadeBase>> ObterTodos();
+
+        /// <summary>
+        ///Apenas task método void 
+        /// </summary>
+        /// <param name="entidade"></param>
+        /// <returns></returns>
+        Task Atualizar(TEntidadeBase entidade);
+        /// <summary>
+        ///Apenas task método void
+        /// </summary>
+        /// <param name="entidade"></param>
+        /// <returns></returns>
+        Task Remover(TEntidadeBase entidade);
+        /// <summary>
+        /// Executa consulta Lambda na entidade que herda de entidade que estiver instanciada no momento
+        /// </summary>
+        /// <param name="predicate">Expressão lambda que retorne true</param>
+        /// <returns>tipo o task<IEnumerable<TEntidadeBase>> retorna a IEnumerable do tipo passado</returns>
+        Task<IEnumerable<TEntidadeBase>> Buscar(Expression<Func<TEntidadeBase, bool>> predicate);
+
+        /// <summary>
+        /// Salva alterações
+        /// </summary>
+        /// <returns>Retorna quantidade de linhas afetadas </returns>
+        Task<int> SaveChanges();
+    }
+
+ public interface IContaRepositorio : IRepositorio<Conta>
+    {
+    }
+	
+  public interface IMovimentoContaRepositorio : IRepositorio<MovimentoConta>
+    {
+    }
+	
+	 public interface IPagamentoContaRepositorio : IRepositorio<PagamentoConta>
+    {
+    }
